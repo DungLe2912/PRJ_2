@@ -13,6 +13,10 @@
 	funct2_msg1: .asciiz "\nMang vua nhap: "
 	funct2_msg2: .asciiz "\nMang khong co phan tu nao ca."
 	
+	funct3_msg1:.asciiz"\nCac so nguyen to trong mang:  "
+	
+	funct4_msg1:.asciiz"\nCac so hoan thien trong mang: "
+	
 	funct7_msg: .asciiz "Gia tri lon nhat trong mang: "
 	
 	arr_size: .word 0
@@ -184,36 +188,253 @@ funct_2: # Xua^'t ma?ng.
 
 funct_3: # Lie^.t ke^ so^' nguye^n to^' trong ma?ng.
 
-	# Truye^`n tham so^' cho ha`m.
-	# ...
+	#Liet ke so nguyen to
+	#xuat tb6
+	li $v0,4
+	la $a0,funct3_msg1
+	syscall	
+	
+	jal _SoNguyenTo
 
-	# ---
-
-	# Lu+.a cho.n chu+'c na(ng ke^' tie^'p trong chu+o+ng tri`nh.	
 	j main.choice
 
-	# --
+_SoNguyenTo:
+#dau thu duc
+	addi $sp,$sp,-20
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $t0,8($sp)
+	sw $t1,12($sp)
+	sw $s1,16($sp)
+
+#than thu tuc
+	la $s0,arr_data
+	li $t0,0 #i = 0
+_SoNguyenTo.Lap:
+	lw $t1,($s0)
+	#kiem tra 1 va 2
+	beq $t1,1,_SoNguyenTo.Tangi
+	beq $t1,2,_SoNguyenTo.Tangi
+	move $a0,$t1
+	jal _KTNT
+	#luu ket qua vao $s1
+	move $s1,$v0
+
+	#kiem tra ket qua
+	beq $s1,1, _SoNguyenTo.Xuat
+	j _SoNguyenTo.Tangi
+_SoNguyenTo.Xuat:
+	li $v0,1
+	move $a0,$t1
+	syscall
+
+	li $v0,11
+	la $a0,32
+	syscall
+_SoNguyenTo.Tangi:
+	addi $t0,$t0,1
+	addi $s0,$s0,4
+	#kiem tra i (i<n)
+	lw $s3,arr_size
+	slt $s1,$t0,$s3
+	beq $s1,1,_SoNguyenTo.Lap
+
+	j _SoNguyenTo.KetThuc
+
+#cuoi thu tuc
+_SoNguyenTo.KetThuc:
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $t0,8($sp)
+	lw $t1,12($sp)
+	lw $s1,16($sp)
+	addi $sp,$sp,20
+	jr $ra
+#ham xu li so nguyen to
+_KTNT:
+	# Khai bao kich thuoc `stack`
+	addi $sp, $sp, -16
+	# Backup cac thanh ghi.
+	sw $ra, ($sp)
+	sw $s0, 4($sp)
+	sw $t0, 8($sp)
+	sw $t1, 12($sp)
 	
-	# Vie^'t pha^`n ca`i dda(.t ha`m ta.i dda^y.
-	# ...	
+
+#Than thu tuc
+	# S = 0
+	li $s0, 0
+	# Khoi tao vong lap.
+	# i = 1
+	li $t0,1
+
+_KTNT.Lap:
+	sub $t1, $t0, $a0 # t1 = i - n
+	bltz $t1, _KTNT.KTUS # t1 < 0 <=> i < n
+	j _KTNT.KTLap
+
+_KTNT.KTUS:
+	# Kiem tra `i` la uoc so cua `n`?
+	div $a0, $t0  
+	mfhi $t1 # Lay phan du t1 = n % i
+	beq $t1, 0, _KTNT.TongUS  # Neu phan du t1 = 0 thi tinh so cac uoc so.
+	j _KTNT.Tangi
+
+_KTNT.TongUS:
+	addi $s0, $s0, 1
+
+_KTNT.Tangi:
+
+	addi $t0, $t0, 1
+	j _KTNT.Lap
+
+_KTNT.KTLap:
+	beq $s0,1, _KTNT.Return1
+	# reuturn 0
+	li $v0, 0
+	j _KTNT.KetThuc
+
+_KTNT.Return1:
+	li $v0, 1
+
+_KTNT.KetThuc:
+# Cuoi thu tuc.
+	# Restore cac thanh ghi
+	lw $ra, ($sp)
+	lw $s0, 4($sp)
+	lw $t0, 8($sp)
+	lw $t1, 12($sp)
+
+	# Xoa stack
+	addi $sp, $sp, 16
+	
+	# Tra ve.
+	jr $ra
+
+# ---
+
 
 # ---
 
 funct_4: # Lie^.t ke^ so^' hoa`n thie^.n trong ma?ng.
 
-	# Truye^`n tham so^' cho ha`m.
-	# ...
-
-	# ---
-
-	# Lu+.a cho.n chu+'c na(ng ke^' tie^'p trong chu+o+ng tri`nh.	
-	j main.choice
-
-	# --
+	#xuat tb
+	li $v0,4
+	la $a0,funct4_msg1
+	syscall	
 	
-	# Vie^'t pha^`n ca`i dda(.t ha`m ta.i dda^y.
-	# ...	
+	jal _SoHoanThien
+	j  main.choice
+#
+_SoHoanThien:
+#dau thu duc
+	addi $sp,$sp,-20
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $t0,8($sp)
+	sw $t1,12($sp)
+	sw $s1,16($sp)
 
+#than thu tuc
+	la $s0,arr_data
+	li $t0,0 #i = 0
+_SoHoanThien.Lap:
+	lw $t1,($s0)
+	move $a0,$t1
+	jal _KTHT
+	#luu ket qua vao $s1
+	move $s1,$v0
+
+	#kiem tra ket qua
+	beq $s1,1, _SoHoanThien.Xuat
+	j _SoHoanThien.Tangi
+_SoHoanThien.Xuat:
+	li $v0,1
+	move $a0,$t1
+	syscall
+
+	li $v0,11
+	la $a0,32
+	syscall
+_SoHoanThien.Tangi:
+	addi $t0,$t0,1
+	addi $s0,$s0,4
+	#kiem tra i (i<n)
+	lw $s3,arr_size
+	slt $s1,$t0,$s3
+	beq $s1,1,_SoHoanThien.Lap
+
+	j _SoHoanThien.KetThuc
+
+#cuoi thu tuc
+_SoHoanThien.KetThuc:
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $t0,8($sp)
+	lw $t1,12($sp)
+	lw $s1,16($sp)
+	addi $sp,$sp,20
+	jr $ra
+_KTHT:
+	# Khai bao kich thuoc `stack`
+	addi $sp, $sp, -16
+	# Backup cac thanh ghi.
+	sw $ra, ($sp)
+	sw $s0, 4($sp)
+	sw $t0, 8($sp)
+	sw $t1, 12($sp)
+	
+
+#Than thu tuc
+	# S = 0
+	li $s0, 0
+	# Khoi tao vong lap.
+	# i = 1
+	li $t0,1
+
+_KTHT.Lap:
+	sub $t1, $t0, $a0 # t1 = i - n
+	bltz $t1, _KTHT.KTUS # t1 < 0 <=> i < n
+	j _KTHT.KTLap
+
+_KTHT.KTUS:
+	# Kiem tra `i` la uoc so cua `n`?
+	div $a0, $t0  
+	mfhi $t1 # Lay phan du t1 = n % i
+	beq $t1, 0, _KTHT.TongUS  # Neu phan du t1 = 0 thi tinh tong cac uoc so.
+	j _KTHT.Tangi
+
+_KTHT.TongUS:
+	add $s0, $s0, $t0
+
+_KTHT.Tangi:
+
+	addi $t0, $t0, 1
+	j _KTHT.Lap
+
+_KTHT.KTLap:
+	beq $s0, $a0, _KTHT.Return1
+	# reuturn 0
+	li $v0, 0
+	j _KTHT.KetThuc
+
+_KTHT.Return1:
+	li $v0, 1
+
+_KTHT.KetThuc:
+# Cuoi thu tuc.
+	# Restore cac thanh ghi
+	lw $ra, ($sp)
+	lw $s0, 4($sp)
+	lw $t0, 8($sp)
+	lw $t1, 12($sp)
+
+	# Xoa stack
+	addi $sp, $sp, 16
+	
+	# Tra ve.
+	jr $ra
+	
 # ---
 
 funct_5: # Ti'nh to+?ng ca'c so^' chi'nh phu+o+ng trong ma?ng.
